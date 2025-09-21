@@ -100,16 +100,22 @@ public class Converter {
 
                 // Remaining columns (typed) go into a row array
                 JsonArray outRow = new JsonArray();
-                outRow.add(row[1]);                                   // Title
-                outRow.add(Integer.parseInt(row[2].trim()));          // Season (int)
-                outRow.add(Integer.parseInt(row[3].trim()));          // Episode (int)
-                outRow.add(row[4]);                                   // Stardate
-                outRow.add(row[5]);                                   // OriginalAirdate
-                outRow.add(row[6]);                                   // RemasteredAirdate
+                // Title
+                outRow.add(row[1]);  
+                // Season (int)
+                outRow.add(Integer.parseInt(row[2].trim()));  
+                // Episode (int)
+                outRow.add(Integer.parseInt(row[3].trim())); 
+                // Stardate
+                outRow.add(row[4]); 
+                // OriginalAirdate
+                outRow.add(row[5]);                                
+                // RemasteredAirdate
+                outRow.add(row[6]);                                   
                 data.add(outRow);
             }
 
-            // Compose final JSON object and serialize using the library
+            // Create the final JSON object and serialize it utilizing the library.
             JsonObject root = new JsonObject();
             root.put("ProdNums", prodNums);
             root.put("ColHeadings", colHeadings);
@@ -127,45 +133,50 @@ public class Converter {
     
     @SuppressWarnings("unchecked")
     public static String jsonToCsv(String jsonString) {
-        
-        String result = ""; // default return value; replace later!
+        // default return value; replace later!
+        String result = ""; 
         
         try {
-            // Parse JSON text into objects/arrays using json-simple
+            //Utilizing json-simple, parse JSON content into objects or arrays.
             JsonObject root = Jsoner.deserialize(jsonString, new JsonObject());
             JsonArray prodNums    = (JsonArray) root.get("ProdNums");
             JsonArray colHeadings = (JsonArray) root.get("ColHeadings");
             JsonArray data        = (JsonArray) root.get("Data");
 
-            // Prepare a CSV writer that normalizes line endings and can quote all fields
+            // Create a CSV writer that normalizes line endings and quotes all fields.
             java.io.StringWriter sw = new java.io.StringWriter();
             CSVWriter writer = new CSVWriter(
                 sw, ',', '"', CSVWriter.DEFAULT_ESCAPE_CHARACTER, "\n"
             );
 
-            // Header row (quote all fields for exact match with provided CSV)
+            // Header row (quote all fields to ensure exact match with given CSV)
             String[] header = new String[colHeadings.size()];
             for (int i = 0; i < colHeadings.size(); i++) header[i] = colHeadings.get(i).toString();
             writer.writeNext(header, true); // applyQuotesToAll = true
 
-            // Data rows: ProdNum + remaining fields; Episode zero-padded to 2 digits
+           // ProdNum + remaining fields in data rows; episode zero-padded to two digits
             for (int i = 0; i < data.size(); i++) {
                 JsonArray row = (JsonArray) data.get(i);
                 String[] out = new String[header.length];
 
                 int k = 0;
-                out[k++] = prodNums.get(i).toString();          // ProdNum
-                out[k++] = row.get(0).toString();               // Title
+                // ProdNum
+                out[k++] = prodNums.get(i).toString();          
+                // Title
+                out[k++] = row.get(0).toString();              
 
                 long season  = ((Number) row.get(1)).longValue();
                 long episode = ((Number) row.get(2)).longValue();
-                out[k++] = Long.toString(season);               // Season (no padding)
-                out[k++] = String.format("%02d", episode);      // Episode (2 digits)
+                out[k++] = Long.toString(season);               
+                out[k++] = String.format("%02d", episode);     
+                 // Stardate
+                out[k++] = row.get(3).toString();              
+                // OriginalAirdate
+                out[k++] = row.get(4).toString();               
+               // RemasteredAirdate
+                out[k++] = row.get(5).toString();               
 
-                out[k++] = row.get(3).toString();               // Stardate
-                out[k++] = row.get(4).toString();               // OriginalAirdate
-                out[k++] = row.get(5).toString();               // RemasteredAirdate
-
+                // quote all fields
                 writer.writeNext(out, true); // quote all fields
             }
 
